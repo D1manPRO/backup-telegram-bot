@@ -1,3 +1,5 @@
+# The bot will be published soon
+
 # Backup TG Bot
 
 **Backup TG Bot** is a Telegram bot designed to automate the creation of backups for specified files and directories and send them to a designated chat. The bot supports scheduling, manual triggers, and automatic splitting of large archives.
