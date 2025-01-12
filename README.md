@@ -1,76 +1,92 @@
-# 🗂️ Telegram Backup Bot 📦
+# Telegram Backup Bot
 
-A Python-based Telegram bot for creating and sending backups of specified files and directories. This bot is designed to automate backups and send them to a Telegram chat using scheduled tasks.
+## Features
 
----
+- 🔐 **Secure Backups**: Automatically archives specified directories and files.
+- ⏳ **Scheduled Tasks**: Backups run on a customizable schedule (default: 8:30 AM & 8:30 PM).
+- 📤 **Telegram Integration**: Sends backups to your specified chat or thread via Telegram.
+- 🌐 **Cross-Platform**: Works on any system with Python 3.7+.
+- ✅ **Easy Configuration**: Customize what to back up, Telegram IDs, and time zones.
 
-## 🚀 Features
+## Installation
 
-- Automatically creates backups of specified files and directories.
-- Scheduled backups twice a day (default: 08:30 AM and 08:30 PM).
-- Sends backups to a Telegram chat or group.
-- Manually trigger backups using the `/backup` command.
-- Easy configuration and setup.
+### Requirements
 
----
+- Python 3.7+
+- Pip (Python package manager)
+- Telegram bot API token
+- Telegram client APT id & API hash 
 
-## 🛠️ Setup & Usage
+### Setup
 
-### 🔧 Configuration
-
-To set up the bot, edit the **`backup.py`** file and replace the following configuration variables with your values:
-
-- `TOKEN` - Telegram bot API token.
-- `ADMIN_ID` - Your Telegram ID (admin of the bot).
-- `DEFAULT_CHAT_ID` - Default chat ID where the backups will be sent.
-- `DEFAULT_THREAD_ID` - Default thread ID for topics in the Telegram chat (set `None` if not needed).
-- `API_ID` & `API_HASH` - API credentials for Telethon client.
-- `TIMEZONE` - Specify your timezone (e.g., `"Europe/London"`).
-
-Also, configure the files and directories you want to back up:
-
-- Add directories in `directories_to_backup`.
-- Add individual files in `files_to_backup`.
-
-### ▶️ Running the Bot
-
-1. Save the file as `backup.py`.
-2. Run the script:
+#### 1. Clone the Repository
 
 ```bash
-python backup.py
+git clone https://github.com/yourusername/telegram-backup-bot.git
+cd telegram-backup-bot
 ```
 
-The bot will automatically install all necessary dependencies.
+#### 2. Dependencies
 
----
+The bot automatically installs all required dependencies (e.g., `aiogram`, `apscheduler`) during startup.
 
-## 🗂️ Commands
+#### 3. Configure the Bot
 
-- `/start` - Initialize the bot (admin only).
-- `/backup` - Manually trigger a backup (admin only).
+Edit the following variables in the script to suit your environment:
 
----
+- **TOKEN**: Your bot’s Telegram API token.
+- **ADMIN\_ID**: Your Telegram user ID (only you can control the bot).
+- **DEFAULT\_CHAT\_ID**: ID of the Telegram chat where backups will be sent.
+- **DEFAULT\_THREAD\_ID**: ID of the thread for sending backups (set to `None` if not applicable).
+- **API\_ID** and **API\_HASH**: Your Telegram API credentials.
+- **TIMEZONE**: Your local timezone for scheduling tasks.
+- **directories\_to\_backup**: Directories to include in the backup.
+- **files\_to\_backup**: Specific files to include in the backup.
 
-## 📅 Scheduled Backups
+#### 4. Run the Bot
 
-The bot is configured to run backups at the following times:
+Use the following command to start the bot:
 
-- **08:30 AM**
-- **08:30 PM**
+```bash
+python3 backup.py
+```
 
-Modify the schedule in the `start_scheduler` function if needed.
+## Usage
 
----
+### Commands
 
-## 🔑 Permissions
+- **/start**: Verify bot functionality and view your Chat ID and Thread ID.
+- **/backup**: Trigger a manual backup and send it to the default chat/thread.
 
-Ensure the bot has sufficient permissions to send messages and upload files in the specified chat.
+### Scheduling Backups
 
----
+Backups run automatically at the following times:
 
-## 👨‍💻 About the Author
+- **8:30 AM**
+- **8:30 PM**
 
-Created with ❤️ by [dpdevops](https://t.me/dpdevops).
+You can adjust these times by modifying the `start_scheduler()` function:
 
-Feel free to reach out to me via Telegram for any questions or feedback: [@dpdevops](https://t.me/dpdevops).
+```python
+scheduler.add_job(send_archive_task, 'cron', hour=8, minute=30)
+scheduler.add_job(send_archive_task, 'cron', hour=20, minute=30)
+```
+
+You can also change the number of backups per day by adding more `add_job` lines or removing existing ones.
+
+## License
+
+This project is licensed under the MIT License. Feel free to use, modify, and distribute it as needed.
+
+## Contribution
+
+🙋️‍♂️ **Have ideas or found a bug?** Don’t hesitate to reach out! Your feedback is invaluable for improving this bot.
+
+## Author
+
+Hello! I’m d1manpro. I’m 16 years old, a DevOps and T-shaped developer. You can learn more about me on my website.
+
+For any questions, feel free to contact me on Telegram:
+
+[![Telegram](https://img.shields.io/badge/Telegram-Contact-blue?logo=telegram)](https://t.me/dpdevops)
+[![Website](https://img.shields.io/badge/Website-Visit-green?logo=link)](https://dp-dev.ru)
