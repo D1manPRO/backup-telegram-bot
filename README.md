@@ -1,4 +1,3 @@
-```markdown
 # 🗂️ Telegram Backup Bot 📦
 
 A Python-based Telegram bot for creating and sending backups of specified files and directories. This bot is designed to automate backups and send them to a Telegram chat using scheduled tasks.
