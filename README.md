@@ -22,8 +22,8 @@
 #### 1. Clone the Repository
 
 ```bash
-git clone https://github.com/yourusername/telegram-backup-bot.git
-cd telegram-backup-bot
+git clone https://github.com/d1manpro/backup-telegram-bot.git
+cd backup-telegram-bot
 ```
 
 #### 2. Dependencies
