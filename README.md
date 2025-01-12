@@ -74,4 +74,3 @@ Ensure the bot has sufficient permissions to send messages and upload files in t
 Created with ❤️ by [dpdevops](https://t.me/dpdevops).
 
 Feel free to reach out to me via Telegram for any questions or feedback: [@dpdevops](https://t.me/dpdevops).
-```
