@@ -112,4 +112,4 @@ Contributions are welcome! Feel free to open issues or submit pull requests.
 
 ## Author
 
-Developed by [D1manPRO](https://github.com/D1manPRO). Contact me on Telegram for any inquiries.
+Developed by [D1manPRO](https://github.com/D1manPRO). Contact me on [Telegram](https://t.me/dpdevops) for any inquiries.
