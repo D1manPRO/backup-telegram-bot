@@ -167,7 +167,7 @@ async def main():
     logging.info(log_text)
 
     await start_scheduler()
-    await send_archive_task()
+    #await send_archive_task()
     await dp.start_polling(bot)
 
 if __name__ == '__main__':
