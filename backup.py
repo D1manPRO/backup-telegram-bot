@@ -22,29 +22,39 @@ import shutil
 import pytz
 from datetime import datetime
 from aiogram import Bot, Dispatcher
-from aiogram.types import Message
+from aiogram.types import Message, FSInputFile
 from aiogram.filters import Command, CommandStart
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from telethon import TelegramClient
 
-# Sensitive data (replace with your own values)
-TOKEN = 'YOUR_BOT_TOKEN'          # Telegram API token for the bot
+# BOT SETTINGS
+TOKEN = 'YOUR_BOT_TOKEN'          # Telegram bot token received from BotFather
 ADMIN_ID = 123456789              # Telegram ID of the bot admin
-DEFAULT_CHAT_ID = -1001234567890  # Default chat ID for sending archives
-DEFAULT_THREAD_ID = 1             # Default thread ID for specific Telegram topics (if applicable)
-API_ID = 12341234                 # API ID for Telegram (used for certain integrations)
-API_HASH = 'YOUR_API_HASH'        # API hash for Telegram (used for certain integrations)
+DEFAULT_CHAT_ID = -1001234567890  # Default chat ID where archives will be sent
+DEFAULT_THREAD_ID = 1             # Default thread ID for specific topics (if using threads in Telegram)
+API_ID = 12341234                 # API ID for Telegram, used for certain integrations
+API_HASH = 'YOUR_API_HASH'        # API hash for Telegram, used for certain integrations
 
-# Parameters
-archive_path = ""                 # Path to the archive
-backup_dir = "backup_temp"        # Temporary directory for archive creation
-TIMEZONE = "Example/Timezone"     # Timezone for scheduler and filename
+# DATABASE SETTINGS
+DB_DATA = {
+    "host": "example.com",        # Host address of the database
+    "port": 3306,                 # Port for connecting to the database
+    "user": "example_username",   # Username for database connection
+    "password": "example_password" # Password for database connection
+}
 
-# Bot objects
-bot = Bot(token=TOKEN)
-dp = Dispatcher()
+# BACKUP SETTINGS
+EXCLUDED_DIRS = ['.cache', '__pycache__', '.local', '.idea']  # List of directories to exclude from backup
+MAX_FILE_SIZE = 19 * 1024 * 1024  # Maximum allowed file size (in bytes) for backups
+archive_path = ""                 # Path to the archive file (leave empty to specify later)
+backup_dir = "backup_temp"        # Temporary directory for creating backups
+TIMEZONE = "Example/Timezone"     # Timezone for scheduling tasks and setting the backup filename
+BACKUP_SCHEDULE_TIMES = [         # List of times (hour, minute) for scheduled backups
+    {"hour": 8, "minute": 30},  # 8:30 AM
+    {"hour": 20, "minute": 30}, # 8:30 PM
+]
 
-# Directories and files to back up
+# FILE AND DIRECTORY BACKUP SETTINGS
 directories_to_backup = {
     "/path/to/your/directory": "dir_backup",  # Replace with the directory path to back up
 }
@@ -54,9 +64,39 @@ files_to_backup = {
     "/usr/bin/your_script": "scripts/your_script.sh" # Replace with the file path to back up
 }
 
+databases_to_backup = {
+    "example": "db/example_export.sql", # Replace with the database name and export file path
+}
+
+# Bot objects
+bot = Bot(token=TOKEN)
+dp = Dispatcher()
+
 def expand_path(path):
     """Expand user home paths"""
     return os.path.expanduser(path)
+
+def create_mysql_backup(database_name, output_path):
+    """Exports data from mysql"""
+    try:
+        os.makedirs(os.path.dirname(output_path), exist_ok=True)
+        dump_command = [
+            "mysqldump",
+            f"--host={DB_DATA['host']}",
+            f"--port={DB_DATA['port']}",
+            f"--user={DB_DATA['user']}",
+            f"--password={DB_DATA['password']}",
+            database_name
+        ]
+        with open(output_path, "w") as dump_file:
+            process = subprocess.run(dump_command, stdout=dump_file, stderr=subprocess.PIPE, text=True)
+
+        if process.returncode != 0:
+            logging.error(f"Failed to export mysql for database {database_name}: {process.stderr}")
+        else:
+            logging.info(f"Database {database_name} successfully exported to {output_path}")
+    except Exception as e:
+        logging.error(f"Failed to export mysql for database {database_name}: {e}")
 
 def create_archive():
     """Create a zip archive of specified files and directories"""
@@ -70,7 +110,7 @@ def create_archive():
             src = expand_path(src)
             if os.path.exists(src):
                 for root, dirs, files in os.walk(src):
-                    dirs[:] = [d for d in dirs if d not in ['.cache', '__pycache__', '.local', '.idea']]
+                    dirs[:] = [d for d in dirs if d not in EXCLUDED_DIRS]
                     if backup_dir in root:
                         continue
                     for file in files:
@@ -83,13 +123,19 @@ def create_archive():
             if os.path.exists(src):
                 archive.write(src, dest)
 
+        for db_name, db_path in databases_to_backup.items():
+            temp_path = os.path.join(backup_dir, db_path)
+            create_mysql_backup(db_name, temp_path)
+            if os.path.exists(temp_path):
+                archive.write(temp_path, db_path)
+
         if os.path.exists(__file__):
             archive.write(__file__, os.path.basename(__file__))
         logging.info("Archive created")
 
 
 async def send_archive_via_client(target_chat_id, target_thread_id, log_msg):
-    """Send the archive to the Telegram chat"""
+    """Send the archive to the Telegram chat via Telegram-Client"""
     log_text = "Connecting to Telegram-Client"
     await log_msg.edit_text(log_text)
     logging.info(log_text)
@@ -107,15 +153,35 @@ async def send_archive_via_client(target_chat_id, target_thread_id, log_msg):
                 await client.send_file(
                     target_chat_id,
                     archive_path,
-                    caption=archive_path,
+                    caption=archive_path.replace(f'{backup_dir}/', '').replace("_", " ").replace(".zip", ""),
                     reply_to=target_thread_id if target_thread_id else None
                 )
                 await log_msg.delete()
                 logging.info(
-                    f"Archive {archive_path.replace('backup_temp/', '')} successfully sent to chat {target_chat_id} in thread {target_thread_id}.")
+                    f"Archive {archive_path.replace(f'{backup_dir}/', '')} successfully sent to chat {target_chat_id} in thread {target_thread_id}.")
             except Exception as e:
                 logging.error(f"Error sending archive: {e}")
 
+async def send_archive_via_bot(target_chat_id, target_thread_id, log_msg):
+    """Send the archive to the Telegram chat via Telegram-Bot"""
+    log_text = "Sending the archive via Telegram-Bot"
+    await log_msg.edit_text(log_text)
+    logging.info(log_text)
+
+    if os.path.exists(archive_path):
+        try:
+            document = FSInputFile(archive_path)
+            await bot.send_document(
+                chat_id=target_chat_id,
+                document=document,
+                caption=archive_path.replace(f'{backup_dir}/', '').replace("_", " ").replace(".zip", ""),
+                message_thread_id=target_thread_id if target_thread_id else None
+            )
+            await log_msg.delete()
+            logging.info(
+                f"Archive {archive_path.replace(f'{backup_dir}/', '')} successfully sent via aiogram to chat {target_chat_id} in thread {target_thread_id}.")
+        except Exception as e:
+            logging.error(f"Error sending archive via aiogram: {e}")
 
 def delete_archive():
     """Delete the backup directory and its contents"""
@@ -129,15 +195,25 @@ async def send_archive_task(message = None):
     log_msg = await bot.send_message(target_chat_id, "Building an archive...", message_thread_id=target_thread_id)
     create_archive()
 
-    await send_archive_via_client(target_chat_id, target_thread_id, log_msg)
+    archive_size = os.path.getsize(archive_path)
+    if archive_size <= MAX_FILE_SIZE:
+        await send_archive_via_bot(target_chat_id, target_thread_id, log_msg)
+    else:
+        await send_archive_via_client(target_chat_id, target_thread_id, log_msg)
 
     delete_archive()
 
 async def start_scheduler():
     """Schedule the archive task to run at specified times"""
     scheduler = AsyncIOScheduler(timezone=TIMEZONE)
-    scheduler.add_job(send_archive_task, 'cron', hour=8, minute=30)   # Scheduled at 8:30 AM
-    scheduler.add_job(send_archive_task, 'cron', hour=20, minute=30)  # Scheduled at 8:30 PM
+    for time_config in BACKUP_SCHEDULE_TIMES:
+        scheduler.add_job(
+            send_archive_task,
+            'cron',
+            hour=time_config['hour'],
+            minute=time_config['minute']
+        )
+        logging.info(f"Backup task scheduled at {time_config['hour']:02}:{time_config['minute']:02}")
     scheduler.start()
 
 @dp.message(CommandStart())
