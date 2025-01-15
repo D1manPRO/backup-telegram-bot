@@ -14,7 +14,8 @@
 - Python 3.7+
 - Pip (Python package manager)
 - Telegram bot API token
-- Telegram client APT id & API hash 
+- Telegram client APT id & API hash
+- MySQL database (if database backups are required)
 
 ### Setup
 
@@ -25,22 +26,33 @@ git clone https://github.com/d1manpro/backup-telegram-bot.git
 cd backup-telegram-bot
 ```
 
-#### 2. Dependencies
+#### 2. Install Dependencies
 
-The bot automatically installs all required dependencies (e.g., `aiogram`, `apscheduler`) during startup.
+The script automatically installs required Python packages on startup. Alternatively, you can manually install them:
+
+```bash
+pip install aiogram apscheduler telethon pytz
+```
 
 #### 3. Configure the Bot
 
-Edit the following variables in the script to suit your environment:
+Edit the script variables to suit your environment:
 
-- **TOKEN**: Your bot’s Telegram API token.
-- **ADMIN\_ID**: Your Telegram user ID (only you can control the bot).
-- **DEFAULT\_CHAT\_ID**: ID of the Telegram chat where backups will be sent.
-- **DEFAULT\_THREAD\_ID**: ID of the thread for sending backups (set to `None` if not applicable).
-- **API\_ID** and **API\_HASH**: Your Telegram API credentials.
-- **TIMEZONE**: Your local timezone for scheduling tasks.
-- **directories\_to\_backup**: Directories to include in the backup.
-- **files\_to\_backup**: Specific files to include in the backup.
+- **BOT SETTINGS**:
+  - `TOKEN`: Your bot’s Telegram API token.
+  - `ADMIN_ID`: Your Telegram user ID (only you can control the bot).
+  - `DEFAULT_CHAT_ID`: Telegram chat ID for backups.
+  - `DEFAULT_THREAD_ID`: Thread ID (set `None` if not applicable).
+  - `API_ID`, `API_HASH`: Telegram API credentials for file uploads.
+
+- **DATABASE SETTINGS**:
+  - Set the database host, port, user, and password for MySQL backups.
+
+- **BACKUP SETTINGS**:
+  - `TIMEZONE`: Set your timezone.
+  - `directories_to_backup`: Directories to include in the backup.
+  - `files_to_backup`: Specific files to include in the backup.
+  - `databases_to_backup`: Databases to back up (optional).
 
 #### 4. Enable Backup on Startup (Optional)
 
@@ -67,21 +79,42 @@ python3 backup.py
 - **/start**: Verify bot functionality and view your Chat ID and Thread ID.
 - **/backup**: Trigger a manual backup and send it to the default chat/thread.
 
-### Scheduling Backups
+### Scheduled Backups
 
-Backups run automatically at the following times:
+Backups are scheduled to run at:
 
 - **8:30 AM**
 - **8:30 PM**
 
-You can adjust these times by modifying the `start_scheduler()` function:
+Modify the `BACKUP_SCHEDULE_TIMES` list in the script to adjust the schedule:
 
 ```python
-scheduler.add_job(send_archive_task, 'cron', hour=8, minute=30)
-scheduler.add_job(send_archive_task, 'cron', hour=20, minute=30)
+BACKUP_SCHEDULE_TIMES = [
+    {"hour": 8, "minute": 30},  # 8:30 AM
+    {"hour": 20, "minute": 30}, # 8:30 PM
+]
 ```
 
-You can also change the number of backups per day by adding more `add_job` lines or removing existing ones.
+## Advanced Configuration
+
+### Excluding Directories
+
+Update the `EXCLUDED_DIRS` list to skip unwanted directories during backups:
+
+```python
+EXCLUDED_DIRS = ['.cache', '__pycache__', '.local', '.idea']
+```
+
+### Maximum File Size
+
+By default, files larger than **19 MB** are sent using `TelegramClient`, as Telegram's bots have a strict limit of **20 MB** per file. For this reason, it is **highly recommended not to change this parameter** to avoid upload errors when sending backups.
+
+Additionally, it is important to note that:
+
+1. **Non-premium Telegram accounts** cannot send files larger than **2 GB**.
+2. **Premium Telegram accounts** increase this limit to **4 GB**.
+
+Regardless of configuration, the bot will not be able to send files exceeding these limits due to Telegram's inherent restrictions. Adjust your backup strategy to ensure files fall within these bounds.
 
 ## License
 
