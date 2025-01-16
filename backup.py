@@ -16,7 +16,6 @@ install_requirements()
 import asyncio
 import logging
 import os
-import time
 import zipfile
 import shutil
 import pytz
@@ -34,6 +33,7 @@ DEFAULT_CHAT_ID = -1001234567890  # Default chat ID where archives will be sent
 DEFAULT_THREAD_ID = 1             # Default thread ID for specific topics (if using threads in Telegram)
 API_ID = 12341234                 # API ID for Telegram, used for certain integrations
 API_HASH = 'YOUR_API_HASH'        # API hash for Telegram, used for certain integrations
+SEND_ARCHIVE_ON_START = False     # Flag to determine if the bot should send an archive on startup
 
 # DATABASE SETTINGS
 DB_DATA = {
@@ -234,16 +234,11 @@ async def backup_command(message: Message):
 
 async def main():
     """Main function to start the bot and run initial tasks"""
-    start_time = time.time()
-    msg = await bot.send_message(ADMIN_ID, "SYSTEM: бот запущен. Проверка пинга...")
-    end_time = time.time()
-    ping = (end_time - start_time) * 1000
-    log_text = f'SYSTEM: бот запущен. Пинг бота: {ping:.2f} ms'
-    await msg.edit_text(log_text)
-    logging.info(log_text)
+    logging.info(f'SYSTEM: Bot is running')
 
     await start_scheduler()
-    #await send_archive_task()
+    if SEND_ARCHIVE_ON_START:
+        await send_archive_task()
     await dp.start_polling(bot)
 
 if __name__ == '__main__':
