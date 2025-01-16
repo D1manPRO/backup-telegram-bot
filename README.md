@@ -56,13 +56,13 @@ Edit the script variables to suit your environment:
 
 #### 4. Enable Backup on Startup (Optional)
 
-If you want the bot to send a backup immediately upon startup, uncomment the following line in the `main()` function of the script:
+To enable the bot to send a backup immediately upon startup, set the `SEND_ARCHIVE_ON_START` variable to `True` in the script configuration:
 
 ```python
-# await send_archive_task()
+SEND_ARCHIVE_ON_START = True
 ```
 
-> **⚠️ Note:** Before enabling this feature, make sure you have correctly configured `DEFAULT_CHAT_ID` and `DEFAULT_THREAD_ID`. If these values are not set, the bot will fail to start and throw an error.
+> **⚠️ Note:** Before enabling this feature, ensure that `DEFAULT_CHAT_ID` and `DEFAULT_THREAD_ID` are properly configured. If these values are not set, the bot may fail to start and throw an error.
 
 #### 5. Run the Bot
 
