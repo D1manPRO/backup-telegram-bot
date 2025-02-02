@@ -27,31 +27,31 @@ from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from telethon import TelegramClient
 
 # BOT SETTINGS
-TOKEN = 'YOUR_BOT_TOKEN'          # Telegram bot token received from BotFather
-ADMIN_ID = 123456789              # Telegram ID of the bot admin
-DEFAULT_CHAT_ID = -1001234567890  # Default chat ID where archives will be sent
-DEFAULT_THREAD_ID = 1             # Default thread ID for specific topics (if using threads in Telegram)
-API_ID = 12341234                 # API ID for Telegram, used for certain integrations
-API_HASH = 'YOUR_API_HASH'        # API hash for Telegram, used for certain integrations
-SEND_ARCHIVE_ON_START = False     # Flag to determine if the bot should send an archive on startup
+TOKEN = 'YOUR_BOT_TOKEN'            # Telegram bot token received from BotFather
+ADMIN_IDS = [123456789, 987654321]  # Telegram IDs of the bot admins
+DEFAULT_CHAT_ID = -1001234567890    # Default chat ID where archives will be sent
+DEFAULT_THREAD_ID = 1               # Default thread ID for specific topics (if using threads in Telegram)
+API_ID = 12341234                   # API ID for Telegram, used for certain integrations
+API_HASH = 'YOUR_API_HASH'          # API hash for Telegram, used for certain integrations
+SEND_ARCHIVE_ON_START = False       # Flag to determine if the bot should send an archive on startup
 
 # DATABASE SETTINGS
 DB_DATA = {
-    "host": "example.com",        # Host address of the database
-    "port": 3306,                 # Port for connecting to the database
-    "user": "example_username",   # Username for database connection
-    "password": "example_password" # Password for database connection
+    "host": "example.com",          # Host address of the database
+    "port": 3306,                   # Port for connecting to the database
+    "user": "example_username",     # Username for database connection
+    "password": "example_password"  # Password for database connection
 }
 
 # BACKUP SETTINGS
 EXCLUDED_DIRS = ['.cache', '__pycache__', '.local', '.idea']  # List of directories to exclude from backup
-MAX_FILE_SIZE = 19 * 1024 * 1024  # Maximum allowed file size (in bytes) for backups
-archive_path = ""                 # Path to the archive file (leave empty to specify later)
-backup_dir = "backup_temp"        # Temporary directory for creating backups
-TIMEZONE = "Example/Timezone"     # Timezone for scheduling tasks and setting the backup filename
-BACKUP_SCHEDULE_TIMES = [         # List of times (hour, minute) for scheduled backups
-    {"hour": 8, "minute": 30},  # 8:30 AM
-    {"hour": 20, "minute": 30}, # 8:30 PM
+MAX_FILE_SIZE = 19 * 1024 * 1024    # Maximum allowed file size (in bytes) for backups
+archive_path = ""                   # Path to the archive file (leave empty to specify later)
+backup_dir = "backup_temp"          # Temporary directory for creating backups
+TIMEZONE = "Example/Timezone"       # Timezone for scheduling tasks and setting the backup filename
+BACKUP_SCHEDULE_TIMES = [           # List of times (hour, minute) for scheduled backups
+    {"hour": 8, "minute": 30},      # 8:30 AM
+    {"hour": 20, "minute": 30},     # 8:30 PM
 ]
 
 # FILE AND DIRECTORY BACKUP SETTINGS
@@ -60,12 +60,12 @@ directories_to_backup = {
 }
 
 files_to_backup = {
-    "~/example.conf": "configs/example.conf", # Replace with the file path to back up
-    "/usr/bin/your_script": "scripts/your_script.sh" # Replace with the file path to back up
+    "~/example.conf": "configs/example.conf",            # Replace with the file path to back up
+    "/usr/bin/your_script": "scripts/your_script.sh"     # Replace with the file path to back up
 }
 
 databases_to_backup = {
-    "example": "db/example_export.sql", # Replace with the database name and export file path
+    "example": "db/example_export.sql",  # Replace with the database name and export file path
 }
 
 # Bot objects
@@ -133,7 +133,6 @@ def create_archive():
             archive.write(__file__, os.path.basename(__file__))
         logging.info("Archive created")
 
-
 async def send_archive_via_client(target_chat_id, target_thread_id, log_msg):
     """Send the archive to the Telegram chat via Telegram-Client"""
     log_text = "Connecting to Telegram-Client"
@@ -187,7 +186,7 @@ def delete_archive():
     """Delete the backup directory and its contents"""
     shutil.rmtree(backup_dir, ignore_errors=True)
 
-async def send_archive_task(message = None):
+async def send_archive_task(message=None):
     """Run the full backup task"""
     target_chat_id = message.chat.id if message else DEFAULT_CHAT_ID
     target_thread_id = message.message_thread_id if message else DEFAULT_THREAD_ID
@@ -219,7 +218,7 @@ async def start_scheduler():
 @dp.message(CommandStart())
 async def start(message: Message):
     """Handle the /start command"""
-    if message.from_user.id != ADMIN_ID:
+    if message.from_user.id not in ADMIN_IDS:
         return
     await message.answer(
         f"The /start command has been successfully processed. ChatID <code>{message.chat.id}</code>, ThreadID <code>{message.message_thread_id}</code>",
@@ -228,13 +227,13 @@ async def start(message: Message):
 @dp.message(Command('backup'))
 async def backup_command(message: Message):
     """Handle the /backup command to manually trigger the backup"""
-    if message.from_user.id != ADMIN_ID:
+    if message.from_user.id not in ADMIN_IDS:
         return
     await send_archive_task(message)
 
 async def main():
     """Main function to start the bot and run initial tasks"""
-    logging.info(f'SYSTEM: Bot is running')
+    logging.info('SYSTEM: Bot is running')
 
     await start_scheduler()
     if SEND_ARCHIVE_ON_START:
