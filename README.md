@@ -39,11 +39,12 @@ pip install aiogram apscheduler telethon pytz
 Edit the script variables to suit your environment:
 
 - **BOT SETTINGS**:
-  - `TOKEN`: Your bot’s Telegram API token.
-  - `ADMIN_ID`: Your Telegram user ID (only you can control the bot).
-  - `DEFAULT_CHAT_ID`: Telegram chat ID for backups.
-  - `DEFAULT_THREAD_ID`: Thread ID (set `None` if not applicable).
-  - `API_ID`, `API_HASH`: Telegram API credentials for file uploads.
+  - `TOKEN`: Your Telegram Bot token provided by BotFather.
+  - `ADMIN_IDS`: A list of Telegram user IDs that are allowed to control the bot.
+  - `DEFAULT_CHAT_ID`: The Telegram chat ID where backups will be sent.
+  - `DEFAULT_THREAD_ID`: Default thread ID for specific topics (set to `None` if not applicable).
+  - `API_ID` and `API_HASH`: Telegram API credentials required for integrations such as file uploads.
+  - `SEND_ARCHIVE_ON_START`: A flag indicating whether to send an archive on bot startup.
 
 - **DATABASE SETTINGS**:
   - Set the database host, port, user, and password for MySQL backups.
