@@ -44,7 +44,6 @@ Edit the script variables to suit your environment:
   - `DEFAULT_CHAT_ID`: The Telegram chat ID where backups will be sent.
   - `DEFAULT_THREAD_ID`: Default thread ID for specific topics (set to `None` if not applicable).
   - `API_ID` and `API_HASH`: Telegram API credentials required for integrations such as file uploads.
-  - `SEND_ARCHIVE_ON_START`: A flag indicating whether to send an archive on bot startup.
 
 - **DATABASE SETTINGS**:
   - Set the database host, port, user, and password for MySQL backups.
